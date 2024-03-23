@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+
+  postgres-db:
+    image: postgres
+
+    environment:
+      POSTGRES_PASSWORD: duitdatabase
+    
+    volumes: 
+     - postgres-db:/var/lib/postgresql/data
+    
+    networks:
+      - postgres-compose-network
+    
+    ports:
+      - 5432:5432
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "willian.luz@aluno.faculdadeimpacta.com.br"
+      PGADMIN_DEFAULT_PASSWORD: "a10216404"
+    ports:
+      - "16543:80"
+    networks:
+      - postgres-compose-network
+
+
+volumes:
+    postgres-db:
+     external: true
+
+networks: 
+  postgres-compose-network:
+    driver: bridge
+
+
