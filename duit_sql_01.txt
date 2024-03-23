@@ -1,0 +1,37 @@
+CREATE TABLE prod.tarefa(
+
+	trf_id BIGSERIAL,
+	trf_titulo VARCHAR(50) not null,
+	trf_descricao VARCHAR not null,
+	trf_status VARCHAR(20) not null,
+	trf_data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP not null,
+	usr_id BIGSERIAL
+);
+
+ALTER TABLE prod.tarefa
+ADD CONSTRAINT tarefa_trf_id_primary_key PRIMARY KEY (trf_id);
+
+
+CREATE TABLE prod.usuario(
+	
+	usr_id BIGSERIAL,
+	usr_nome VARCHAR(50) NOT NULL,
+	usr_senha VARCHAR(100) NOT NULL
+);
+ALTER TABLE prod.usuario
+ADD CONSTRAINT usuario_usr_id_primery_key
+PRIMARY KEY (usr_id);
+
+ALTER TABLE prod.usuario
+ADD CONSTRAINT usuario_usr_nomme_unique
+UNIQUE(usr_nome);
+
+ALTER TABLE prod.tarefa
+ADD CONSTRAINT tarefa_usr_id_foreig_key
+FOREIGN KEY (usr_id) REFERENCES prod.usuario(usr_id);
+
+INSERT INTO prod.usuario(usr_nome, usr_senha)
+	VALUES ('willian.dev', '$2a$10$YHAMzqAvdYeTC0Z1vSpRtuVV0U0v9NC7hSKlVxWDl6TklTav1K2oq');
+	select * from prod.usuario;
+
+dev@impacta
