@@ -9,32 +9,38 @@ import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
 
+import br.com.wslcs.duit.dto.viewdata.ViewTaskRecord;
 import br.com.wslcs.duit.model.Task;
 import br.com.wslcs.duit.repository.TaskRepository;
+import br.com.wslcs.duit.repository.UserRepository;
 
-public class TaskDataProvider extends AbstractBackEndDataProvider<Task, TaskFilter> {
+public class TaskDataProvider extends AbstractBackEndDataProvider<ViewTaskRecord, TaskFilter> {
 
-    public final TaskRepository taskRepository;
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
 
-    public TaskDataProvider(TaskRepository taskRepository) {
+    public TaskDataProvider(TaskRepository taskRepository, UserRepository userRepository) {
 
         this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
 
     }
+
     @Override
-    protected int sizeInBackEnd(Query<Task, TaskFilter> query) {
+    protected int sizeInBackEnd(Query<ViewTaskRecord, TaskFilter> query) {
         return (int) fetchFromBackEnd(query).count();
     }
 
     @Override
-    protected Stream<Task> fetchFromBackEnd(Query<Task, TaskFilter> query) {
+    protected Stream<ViewTaskRecord> fetchFromBackEnd(Query<ViewTaskRecord, TaskFilter> query) {
         // A real app should use a real database or a service
         // to fetch, filter and sort data.
-        Stream<Task> stream = taskRepository.findAll().stream();
+        Stream<ViewTaskRecord> stream = taskRepository.findAll().stream()
+                .map(t -> new ViewTaskRecord(t, userRepository.findById(t.getUserId()).get().getUserName()));
 
         // Filtering
         if (query.getFilter().isPresent()) {
-            stream = stream.filter(person -> query.getFilter().get().test(person));
+            stream = stream.filter(task -> query.getFilter().get().test(task));
         }
 
         // Sorting
@@ -46,9 +52,9 @@ public class TaskDataProvider extends AbstractBackEndDataProvider<Task, TaskFilt
         return stream.skip(query.getOffset()).limit(query.getLimit());
     }
 
-    private static Comparator<Task> sortComparator(List<QuerySortOrder> sortOrders) {
+    private static Comparator<ViewTaskRecord> sortComparator(List<QuerySortOrder> sortOrders) {
         return sortOrders.stream().map(sortOrder -> {
-            Comparator<Task> comparator = taskFieldComparator(sortOrder.getSorted());
+            Comparator<ViewTaskRecord> comparator = taskFieldComparator(sortOrder.getSorted());
 
             if (sortOrder.getDirection() == SortDirection.DESCENDING) {
                 comparator = comparator.reversed();
@@ -58,11 +64,11 @@ public class TaskDataProvider extends AbstractBackEndDataProvider<Task, TaskFilt
         }).reduce(Comparator::thenComparing).orElse((p1, p2) -> 0);
     }
 
-    private static Comparator<Task> taskFieldComparator(String sorted) {
-        if (sorted.equals("name")) {
-            return Comparator.comparing(task -> task.getStatus());
-        } else if (sorted.equals("profession")) {
-            return Comparator.comparing(task -> task.getStatus());
+    private static Comparator<ViewTaskRecord> taskFieldComparator(String sorted) {
+        if (sorted.equals("userId")) {
+            return Comparator.comparing(task -> task.userId());
+        } else if (sorted.equals("status")) {
+            return Comparator.comparing(task -> task.status());
         }
         return (p1, p2) -> 0;
     }

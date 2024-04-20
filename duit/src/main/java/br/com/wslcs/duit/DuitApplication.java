@@ -9,5 +9,4 @@ public class DuitApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DuitApplication.class, args);
 	}
-
 }

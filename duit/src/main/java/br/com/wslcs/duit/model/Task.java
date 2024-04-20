@@ -1,8 +1,15 @@
 package br.com.wslcs.duit.model;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import br.com.wslcs.duit.dto.inputdata.InputTaskRecord;
+import br.com.wslcs.duit.service.TaskService;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -86,8 +93,9 @@ public class Task {
         this.status = status;
     }
 
-    public Timestamp getCreationDate() {
-        return creationDate;
+    public String getCreationDate() {
+     
+        return creationDate != null? creationDate.toLocalDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")):LocalDate.now().toString();
     }
 
     public void setCreationDate(Timestamp creationDate) {
@@ -102,9 +110,9 @@ public class Task {
         this.userId = userId;
     }
 
-    public String getOwnerName(){
-        return "willian.dev";
-    }
+    // public String getOwnerName(){
+    //     return taskService.getUserName(this.userId);
+    // }
 
     @Override
     public int hashCode() {

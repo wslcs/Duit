@@ -1,5 +1,6 @@
 package br.com.wslcs.duit.view.components;
 
+import br.com.wslcs.duit.dto.viewdata.ViewTaskRecord;
 import br.com.wslcs.duit.model.Task;
 
 public class TaskFilter {
@@ -11,10 +12,11 @@ public class TaskFilter {
         this.searchTerm = searchTerm;
     }
 
-    public boolean test(Task task) {
-        boolean matchesFullName = matches(task.getOwnerName(), searchTerm);
-        boolean matchesProfession = matches(task.getStatus(), searchTerm);
-        return matchesFullName || matchesProfession;
+    public boolean test(ViewTaskRecord task) {
+        boolean matchesFullName = matches(task.ownerName(), searchTerm);
+        boolean matchesStatus = matches(task.status(), searchTerm);
+        boolean matchesCreateDate = matches(task.creationDate(), searchTerm);
+        return matchesFullName || matchesStatus || matchesCreateDate;
     }
 
     private boolean matches(String value, String searchTerm) {

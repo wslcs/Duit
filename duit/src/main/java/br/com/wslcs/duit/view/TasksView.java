@@ -1,8 +1,5 @@
 package br.com.wslcs.duit.view;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.Key;
@@ -10,7 +7,6 @@ import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.dataview.GridDataView;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
@@ -26,8 +22,10 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.dom.Style.AlignSelf;
 import com.vaadin.flow.router.Route;
 import br.com.wslcs.duit.dto.inputdata.InputTaskRecord;
+import br.com.wslcs.duit.dto.viewdata.ViewTaskRecord;
 import br.com.wslcs.duit.model.Task;
 import br.com.wslcs.duit.repository.TaskRepository;
+import br.com.wslcs.duit.repository.UserRepository;
 import br.com.wslcs.duit.service.TaskService;
 import br.com.wslcs.duit.view.components.TaskDataProvider;
 import br.com.wslcs.duit.view.components.TaskFilter;
@@ -37,19 +35,22 @@ public class TasksView extends VerticalLayout {
 
     private final TaskRepository taskRepository;
 
-    private TaskFilter personFilter = new TaskFilter();
+    private final UserRepository userRepository;
+
+    private TaskFilter taskFilter = new TaskFilter();
 
     private TaskDataProvider dataProvider;
 
-    private ConfigurableFilterDataProvider<Task, Void, TaskFilter> filterDataProvider;
+    private ConfigurableFilterDataProvider<ViewTaskRecord, Void, TaskFilter> filterDataProvider;
 
     @Autowired
     private TaskService taskService;
 
-    public TasksView(TaskRepository taskRepository) {
+    public TasksView(TaskRepository taskRepository, UserRepository userRepository) {
 
         this.taskRepository = taskRepository;
-        dataProvider = new TaskDataProvider(taskRepository);
+        this.userRepository = null;
+        dataProvider = new TaskDataProvider(taskRepository, userRepository);
         filterDataProvider = dataProvider
                 .withConfigurableFilter();
 
@@ -78,48 +79,31 @@ public class TasksView extends VerticalLayout {
         formLayout.getStyle().setAlignSelf(AlignSelf.CENTER);
         setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Grid<Task> grid = getTasks();
-        GridDataView<Task> gridDataView = grid.setItems(filterDataProvider);
-
         TextField searchField = new TextField();
         searchField.setWidth("50%");
-        searchField.setPlaceholder("Search");
+        searchField.setPlaceholder("Data de criação, Dono ou Status");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
         searchField.setValueChangeMode(ValueChangeMode.EAGER);
-        searchField.addValueChangeListener(e -> gridDataView.refreshAll());
+        searchField.addValueChangeListener(e -> {
 
+            taskFilter.setSearchTerm(e.getValue());
+            filterDataProvider.setFilter(taskFilter);
+        });
 
+        Grid<ViewTaskRecord> grid = getTasks();
 
+        add(todosList);
         addButton.addClickListener(click -> {
 
-            grid.setItems(taskService.save(new InputTaskRecord(title.getValue(), textArea.getValue())));
+            Task task = taskService.save(new InputTaskRecord(title.getValue(), textArea.getValue()));
+            grid.setItems(new ViewTaskRecord(task, userRepository.findById(task.getUserId()).get().getUserName()));
             title.clear();
             textArea.clear();
-
         });
         VerticalLayout layout = new VerticalLayout(searchField, grid);
         layout.setPadding(false);
-
-        grid.getListDataView().addFilter(task -> {
-            String searchTerm = searchField.getValue().trim();
-
-            if (searchTerm.isEmpty())
-                return true;
-
-            boolean matchesStatus = matchesTerm(task.getStatus(),
-                    searchTerm);
-            boolean matchesCreationDate = matchesTerm(task.getTitle(), searchTerm);
-
-            return matchesStatus || matchesCreationDate;
-        });
-
-        add(todosList);
         add(layout);
         add(grid);
-    }
-
-    private boolean matchesTerm(String value, String searchTerm) {
-        return value.toLowerCase().contains(searchTerm.toLowerCase());
     }
 
     private TextArea createTextArea() {
@@ -140,15 +124,16 @@ public class TasksView extends VerticalLayout {
         return select;
     }
 
-    private Grid<Task> getTasks() {
+    private Grid<ViewTaskRecord> getTasks() {
 
         // List<Task> tasks = new ArrayList<>();
-        Grid<Task> grid = new Grid<>(Task.class, false);
-        grid.addColumn(Task::getTitle).setHeader("Titulo");
-        grid.addColumn(Task::getStatus).setHeader("Status");
-        grid.addColumn(Task::getOwnerName).setHeader("Dono");
+        Grid<ViewTaskRecord> grid = new Grid<>(ViewTaskRecord.class, false);
+        grid.addColumn(ViewTaskRecord::title).setHeader("Titulo");
+        grid.addColumn(ViewTaskRecord::status).setHeader("Status");
+        grid.addColumn(ViewTaskRecord::ownerName).setHeader("Dono");
+        grid.addColumn(ViewTaskRecord::creationDate).setHeader("Data de Criação");
+        grid.setItems(filterDataProvider);
         return grid;
 
     }
-
 }
