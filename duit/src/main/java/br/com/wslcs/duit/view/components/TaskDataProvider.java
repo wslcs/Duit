@@ -10,7 +10,6 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
 
 import br.com.wslcs.duit.dto.viewdata.ViewTaskRecord;
-import br.com.wslcs.duit.model.Task;
 import br.com.wslcs.duit.repository.TaskRepository;
 import br.com.wslcs.duit.repository.UserRepository;
 
@@ -33,8 +32,7 @@ public class TaskDataProvider extends AbstractBackEndDataProvider<ViewTaskRecord
 
     @Override
     protected Stream<ViewTaskRecord> fetchFromBackEnd(Query<ViewTaskRecord, TaskFilter> query) {
-        // A real app should use a real database or a service
-        // to fetch, filter and sort data.
+
         Stream<ViewTaskRecord> stream = taskRepository.findAll().stream()
                 .map(t -> new ViewTaskRecord(t, userRepository.findById(t.getUserId()).get().getUserName()));
 

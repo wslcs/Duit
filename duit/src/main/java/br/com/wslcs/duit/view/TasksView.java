@@ -1,5 +1,6 @@
 package br.com.wslcs.duit.view;
 
+import org.hibernate.query.QueryParameter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.Key;
@@ -20,6 +21,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.dom.Style.AlignSelf;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import br.com.wslcs.duit.dto.inputdata.InputTaskRecord;
 import br.com.wslcs.duit.dto.viewdata.ViewTaskRecord;
@@ -132,6 +134,11 @@ public class TasksView extends VerticalLayout {
         grid.addColumn(ViewTaskRecord::status).setHeader("Status");
         grid.addColumn(ViewTaskRecord::ownerName).setHeader("Dono");
         grid.addColumn(ViewTaskRecord::creationDate).setHeader("Data de Criação");
+        grid.addItemClickListener(e -> {
+
+            getUI().ifPresent(
+                    ui -> ui.navigate(TaskView.class, QueryParameters.of("tid", e.getItem().id().toString())));
+        });
         grid.setItems(filterDataProvider);
         return grid;
 
