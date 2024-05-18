@@ -2,37 +2,47 @@ package br.com.wslcs.duit.view;
 
 import java.util.Optional;
 
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.dom.Style.AlignSelf;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
-
 import br.com.wslcs.duit.model.Task;
 import br.com.wslcs.duit.repository.TaskRepository;
+import br.com.wslcs.duit.service.TaskService;
 
 @Route("task")
 public class TaskView extends VerticalLayout implements BeforeEnterObserver {
 
     private Task task;
+    private FormLayout formLayout;
     private final TaskRepository taskRepository;
+    private final TaskService taskService;
+    private final UI ui;
+    private Binder<Task> binder;
+    private TextField titleField;
+    private TextArea textArea;
+    private Select<String> select;
 
-    public TaskView(TaskRepository taskRepository) {
+    public TaskView(TaskRepository taskRepository, TaskService taskService) {
         this.taskRepository = taskRepository;
+        this.taskService = taskService;
 
         setAlignItems(FlexComponent.Alignment.CENTER);
 
-        add(new H1("Task Titulo"));
-        add(createForm());
+        add(new H1("Editar Task"));
+        this.ui = UI.getCurrent();
     }
 
     @Override
@@ -42,7 +52,10 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         QueryParameters params = event.getLocation().getQueryParameters();
         Optional<String> param = params.getSingleParameter("tid");
         this.task = taskRepository.findById(Long.valueOf(param.get())).get();
-        System.out.println(task);
+        this.ui.access(() -> {
+            add(createForm());
+        });
+
     }
 
     private TextArea createTextArea() {
@@ -50,23 +63,70 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         textArea.setWidthFull();
         textArea.setMinHeight("100px");
         textArea.setMaxHeight("150px");
-        textArea.setLabel("Description");
+        textArea.setLabel("Descrição");
+        textArea.setValue(task.getDescription());
         return textArea;
     }
 
     private FormLayout createForm() {
-        TextField title = new TextField(task.getTitle());
-        TextArea textArea = createTextArea();
+        titleField = new TextField("Título");
+        titleField.setValue(task.getTitle());
+        textArea = createTextArea();
+        select = createSelect();
 
         FormLayout formLayout = new FormLayout();
-        formLayout.add(title, textArea);
-        formLayout.setColspan(title, 2);
+        formLayout.add(select, titleField, textArea);
+        formLayout.setColspan(titleField, 2);
         formLayout.setColspan(textArea, 2);
         formLayout.setWidth(50, Unit.VW);
         formLayout.getStyle().setAlignSelf(AlignSelf.CENTER);
-        return formLayout;
+        formLayout.add(createSaveButton(), 1);
+        formLayout.add(createCancelButton(), 1);
+        this.formLayout = formLayout;
+        taskBinder();
+        return this.formLayout;
 
     }
 
+    private Select<String> createSelect() {
+        select = new Select<String>();
+        select.setLabel("Status");
+        select.setItems("PENDENTE", "FINALIZADA");
+        select.setValue(task.getStatus());
+
+        return select;
+    }
+
+    private Binder<Task> taskBinder() {
+
+        binder = new Binder<>(Task.class);
+        binder.bind(titleField, Task::getTitle, Task::setTitle);
+        binder.bind(textArea, Task::getDescription, Task::setDescription);
+        binder.bind(select, Task::getStatus, Task::setStatus);
+        binder.setBean(task);
+        return binder;
+    }
+
+    private Button createSaveButton() {
+
+        Button saveButton = new Button("Salvar");
+        saveButton.addClickListener(e -> {
+            taskService.updateTask(task);
+            getUI().ifPresent(
+                    ui -> ui.navigate(TasksView.class));
+        });
+        return saveButton;
+    }
+
+    private Button createCancelButton() {
+
+        Button cancelButton = new Button("Cancelar");
+        cancelButton.addClickListener(e -> {
+            getUI().ifPresent(
+                    ui -> ui.navigate(TasksView.class));
+        });
+        return cancelButton;
+    }
 }
-//criar o atributo do form na tela, da UI e depois usar o metodo access da UI para modificar a UI dentro do beforeEnter.
+// pesquisar form data bind para alteração dos dados da entidade no formlário.
+// criar cancelButton e usar ui.navigate para a home.
