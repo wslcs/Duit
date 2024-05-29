@@ -1,7 +1,6 @@
 package br.com.wslcs.duit.view;
 
 import java.util.Optional;
-
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -34,6 +33,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private TextField titleField;
     private TextArea textArea;
     private Select<String> select;
+    
 
     public TaskView(TaskRepository taskRepository, TaskService taskService) {
         this.taskRepository = taskRepository;
@@ -73,18 +73,34 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
         titleField.setValue(task.getTitle());
         textArea = createTextArea();
         select = createSelect();
+        Button deleteButton = createDeleteButton();
+        deleteButton.getStyle().setColor("red");
 
         FormLayout formLayout = new FormLayout();
-        formLayout.add(select, titleField, textArea);
-        formLayout.setColspan(titleField, 2);
+        formLayout.add(titleField,select, textArea);
+        formLayout.setColspan(titleField, 1);
         formLayout.setColspan(textArea, 2);
         formLayout.setWidth(50, Unit.VW);
         formLayout.getStyle().setAlignSelf(AlignSelf.CENTER);
-        formLayout.add(createSaveButton(), 1);
-        formLayout.add(createCancelButton(), 1);
+        formLayout.add(createSaveButton(), 2);
+        formLayout.add(createCancelButton(), 2);
+        formLayout.add(deleteButton);
+        formLayout.setColspan(deleteButton, 2);
         this.formLayout = formLayout;
         taskBinder();
         return this.formLayout;
+
+    }
+
+    private  Button createDeleteButton() {
+
+        Button saveButton = new Button("Excluir");
+        saveButton.addClickListener(e -> {
+            taskService.deleteTask(task);
+            getUI().ifPresent(
+                    ui -> ui.navigate(TasksView.class));
+        });
+        return saveButton;
 
     }
 

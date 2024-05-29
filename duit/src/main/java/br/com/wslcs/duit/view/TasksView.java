@@ -130,6 +130,7 @@ public class TasksView extends VerticalLayout {
 
         // List<Task> tasks = new ArrayList<>();
         Grid<ViewTaskRecord> grid = new Grid<>(ViewTaskRecord.class, false);
+        grid.addColumn(ViewTaskRecord::id).setHeader("Código");
         grid.addColumn(ViewTaskRecord::title).setHeader("Titulo");
         grid.addColumn(ViewTaskRecord::status).setHeader("Status");
         grid.addColumn(ViewTaskRecord::ownerName).setHeader("Dono");

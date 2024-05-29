@@ -41,4 +41,8 @@ public class TaskService {
         task.setStatus(modifiedTask.getStatus());
         return task;
     }
+
+    public void deleteTask(Task task) {
+        taskRepository.delete(task);
+    }
 }
