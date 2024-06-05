@@ -120,7 +120,7 @@ public class TasksView extends VerticalLayout {
     private Select<String> createSelect() {
         Select<String> select = new Select<>();
         select.setLabel("Status");
-        select.setItems("Pendente", "Finalizada");
+        select.setItems("Pendente", "Concluída");
         select.setValue("Most recent first");
 
         return select;

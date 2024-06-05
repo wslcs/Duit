@@ -107,7 +107,7 @@ public class TaskView extends VerticalLayout implements BeforeEnterObserver {
     private Select<String> createSelect() {
         select = new Select<String>();
         select.setLabel("Status");
-        select.setItems("PENDENTE", "FINALIZADA");
+        select.setItems("PENDENTE", "CONCLUÍDA");
         select.setValue(task.getStatus());
 
         return select;
